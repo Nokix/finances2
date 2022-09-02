@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List, Iterator, Iterable
 
 
@@ -42,17 +43,7 @@ class Sudoku(object):
 
 
 class SudokuSolver(object):
-    def solve(self) -> bool:
-        pass
-
-
-class SudokuSolverWave(SudokuSolver):
-    def __init__(self, sudoku: Sudoku):
-        self.sudoku = sudoku
-        self.wave: List[List[List[int]]] = [[list(range(1, 1 + self.sudoku.board_length))
-                                             for i in range(self.sudoku.board_length)]
-                                            for j in range(self.sudoku.board_length)]
-        self.solved = Sudoku(quadrant_size=self.sudoku.quadrant_size)
+    sudoku: Sudoku
 
     def collapse_positions(self, i: int, j: int) -> Iterator[Iterable[int]]:
         # rows
@@ -70,6 +61,15 @@ class SudokuSolverWave(SudokuSolver):
         for r in range(q_size * q_i, q_size * (q_i + 1)):
             for c in range(q_size * q_j, q_size * (q_j + 1)):
                 yield r, c
+
+
+class SudokuSolverWave(SudokuSolver):
+    def __init__(self, sudoku: Sudoku):
+        self.sudoku = sudoku
+        self.wave: List[List[List[int]]] = [[list(range(1, 1 + self.sudoku.board_length))
+                                             for i in range(self.sudoku.board_length)]
+                                            for j in range(self.sudoku.board_length)]
+        self.solved: Sudoku = Sudoku(quadrant_size=self.sudoku.quadrant_size)
 
     def collapse(self, i: int, j: int, n: int) -> None:
         for k, l in self.collapse_positions(i, j):
@@ -106,3 +106,35 @@ class SudokuSolverWave(SudokuSolver):
         for i, j, n in self.get_next_best_collapse_position():
             self.collapse(i, j, n)
             self.solved.board[i][j] = n
+
+
+class SudokuSolverWave2(SudokuSolver):
+    def __init__(self, sudoku: Sudoku):
+        self.sudoku = sudoku
+        self.board_length = self.sudoku.board_length
+        self.wave = {(i, j): ([n] if n else list(range(1, 1 + self.board_length))) for i, j, n in self.sudoku.fields()}
+        self.solved: Sudoku = Sudoku(self.sudoku.quadrant_size)
+
+    def get_next_collapse_position(self, chooser=(lambda ls: ls[0])):
+        while True:
+            self.wave = dict(sorted(self.wave.items(), key=(lambda item: len(item[1])), reverse=True))
+            try:
+                (i, j), possibilities = self.wave.popitem()
+            except KeyError:
+                break
+            if len(possibilities):
+                if len(possibilities) == 1:
+                    yield i, j, possibilities[0]
+                else:
+                    yield i, j, chooser(possibilities)
+            else:
+                break
+
+    def solve(self):
+        for i, j, n in self.get_next_collapse_position():
+            self.solved.board[i][j] = n
+            for k, l in self.collapse_positions(i, j):
+                try:
+                    self.wave[(k, l)].remove(n)
+                except (ValueError, KeyError):
+                    pass

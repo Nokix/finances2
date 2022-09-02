@@ -1,6 +1,6 @@
 import unittest
 
-from src.sudoku.sudoku import Sudoku, SudokuSolverWave
+from src.sudoku.sudoku import Sudoku, SudokuSolverWave, SudokuSolverWave2
 
 
 class MyTestCase(unittest.TestCase):
@@ -128,7 +128,7 @@ class MyTestCase(unittest.TestCase):
                                            [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3]],
                                            [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3]]])
 
-    def test_solve_1(self):
+    def test_SudokuSolverWave_solve_1(self):
         sudoku = Sudoku()
         sudoku.board = [
             [7, 8, 0, 4, 0, 0, 1, 2, 0],
@@ -143,20 +143,67 @@ class MyTestCase(unittest.TestCase):
         ]
         solver = SudokuSolverWave(sudoku)
         solver.solve()
-        solved = [
-            [5, 3, 4, 6, 7, 8, 9, 1, 2],
-            [6, 7, 2, 1, 9, 5, 3, 4, 8],
-            [1, 9, 8, 3, 4, 2, 5, 6, 7],
-            [8, 5, 9, 7, 6, 1, 4, 2, 3],
-            [4, 2, 6, 8, 5, 3, 7, 9, 1],
-            [7, 1, 3, 9, 2, 4, 8, 5, 6],
-            [9, 6, 1, 5, 3, 7, 2, 8, 4],
-            [2, 8, 7, 4, 1, 9, 6, 3, 5],
-            [3, 4, 5, 2, 8, 6, 1, 7, 9]
-        ]
-        print(solver.wave)
-        print(solver.solved.board)
         self.assertTrue(solver.solved.is_correct())
+
+    def test_solve_SudokuSolverWave_2(self):
+        sudoku = Sudoku(quadrant_size=2)
+        sudoku.board = [
+            [0, 3, 4, 0],
+            [4, 0, 0, 2],
+            [1, 1, 0, 3],
+            [0, 2, 1, 0]
+        ]
+        solver = SudokuSolverWave(sudoku)
+        solver.solve()
+        self.assertFalse(solver.solved.is_correct())
+
+    def test_init_SudokuSolverWave2_1(self):
+        sudoku = Sudoku(quadrant_size=2)
+        solver = SudokuSolverWave2(sudoku)
+        n = 4
+        self.assertDictEqual(solver.wave, {(i, j): list(range(1, 1 + n)) for i in range(n) for j in range(n)})
+
+    def test_init_SudokuSolverWave2_2(self):
+        sudoku = Sudoku(quadrant_size=2)
+        sudoku.board = [
+            [0, 3, 4, 0],
+            [4, 0, 0, 2],
+            [1, 0, 0, 3],
+            [0, 2, 1, 0]
+        ]
+        solver = SudokuSolverWave2(sudoku)
+        n = 4
+        full = list(range(1, 1 + n))
+        self.assertDictEqual(solver.wave, {
+            (0, 0): full, (0, 1): [3], (0, 2): [4], (0, 3): full,
+            (1, 0): [4], (1, 1): full, (1, 2): full, (1, 3): [2],
+            (2, 0): [1], (2, 1): full, (2, 2): full, (2, 3): [3],
+            (3, 0): full, (3, 1): [2], (3, 2): [1], (3, 3): full,
+        })
+
+    def test_solve_SudokuSolverWave2_1(self):
+        sudoku = Sudoku(quadrant_size=2)
+        sudoku.board = [
+            [0, 3, 4, 0],
+            [4, 0, 0, 2],
+            [1, 0, 0, 3],
+            [0, 2, 1, 0]
+        ]
+        solver = SudokuSolverWave2(sudoku)
+        solver.solve()
+        self.assertTrue(solver.solved.is_correct())
+
+    def test_solve_SudokuSolverWave2_2(self):
+        sudoku = Sudoku(quadrant_size=2)
+        sudoku.board = [
+            [0, 3, 4, 0],
+            [4, 0, 0, 2],
+            [1, 1, 0, 3],
+            [0, 2, 1, 0]
+        ]
+        solver = SudokuSolverWave2(sudoku)
+        solver.solve()
+        self.assertFalse(solver.solved.is_correct())
 
 
 if __name__ == '__main__':
